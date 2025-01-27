@@ -4,9 +4,15 @@ indicator('xxx', 'KHAN SMC', true, max_bars_back = 5000, max_labels_count = 500,
 // [ _ ] creat and edit inputs symbols and timeframe and bool
 // [ _ ] edit function mnMark in the multisymbol
 // [ _ ] BoS_ChoCh
-// [ ] cfHL
-// [ ]
-// [ ]
+// [ _ ] cfHL
+// [ _ ] sweep
+// [ _ ] IDM
+// [ ] ba_color
+// [ ] 
+// [ ] 
+// [ ] 
+// [ ] 
+
 
 // Symbol and Bool and timeframe
 // TODOO
@@ -115,5 +121,43 @@ cfHL(bool ifHL, tmodify, timeframe) =>
     cfHLStyle = ifHL ? label.style_label_down : label.style_label_up
     if showHL
         label.new(ifHLbarid, HLprc, ifHL_txt, color = transp, textcolor = HLcolor, style = cfHLStyle)
+
+// TODOO
+// op_s1, cl_s1, lastHH, lastH, puDn, lastL, lastLL, lastHHbar, lastHbar, lastLbar, lastLLbar,    barX
+//   |      |       |       |     |     |       |        |          |         |         |           |
+// open, close,   high,    high, low,  low,    low,  bar_index,  bar_index, bar_index, bar_index, bar_index
+sweep(bool swHL, bool swHrLr, tmodify, timeframe) =>
+    [op_s1, cl_s1, lastHH, lastH, puDn, lastL, lastLL, lastHHbar, lastHbar, lastLbar, lastLLbar, barX] = request.security(tmodify, timeframe, [open, close, high, high, low, low, low, bar_index, bar_index, bar_index, bar_index, bar_index], lookahead = barmerge.lookahead_off, ignore_invalid_symbol = false, gaps = barmerge.gaps_off)
+    swStyle = swHL ? label.style_label_down : label.style_label_up
+    [swHLbarid, swprc, swHL_txt] = switch 
+        swHL == bool(1) and swHrLr == bool(1) => [lastHHbar, lastHH, 'HH']
+        swHL == bool(1) and swHrLr == bool(0) => [lastHbar, lastH, 'LH']
+        swHL == bool(0) and swHrLr == bool(1) => [lastLbar, lastL, 'HL']
+        swHL == bool(0) and swHrLr == bool(0) => [lastLLbar, lastLL, 'LL']
+    maxlen = barX - 500
+    swHLbarid := swHLbarid < maxlen ? maxlen : swHLbarid
+    //draw sweeping line
+    if showSw
+        line.new(swHLbarid, swprc, barX, swprc, color = swColor, style = line.style_dotted)
+        if markX
+            label.new(int(math.avg(barX, swHLbarid)), swprc, 'X', color = transp, textcolor = swColor, style = swStyle, size = size.small)
+
+// op_s1, cl_s1, lastHH, lastH, puDn, lastL, lastLL, lastHHbar, lastHbar, lastLbar, lastLLbar,    barX,      idmB, idmS
+//   |      |       |       |     |     |       |        |          |         |         |           |          |     |
+// open, close,   high,    high, low,  low,    low,  bar_index,  bar_index, bar_index, bar_index, bar_index,  low,  high
+IDM(bool BS, idmB_bar, idmS_bar, tmodify, timeframe) =>
+    [op_s1, cl_s1, lastHH, idmS, lastH, puDn, idmB, lastL, lastLL, lastHHbar, lastHbar, lastLbar, lastLLbar, barX] = request.security(tmodify, timeframe, [open, close, high, high, low, low, low, low, bar_index, bar_index, bar_index, bar_index, bar_index], lookahead = barmerge.lookahead_off, ignore_invalid_symbol = false, gaps = barmerge.gaps_off)
+    IDMid = BS ? idmB_bar : idmS_bar
+    idmprc = BS ? idmB : idmS
+    idmStyle = BS ? label.style_label_up : label.style_label_down
+    maxlen = barX - 500
+    IDMid := IDMid < maxlen ? maxlen : IDMid
+    //draw idm takeout line
+    if showIDM
+        line.new(IDMid, idmprc, barX, idmprc, color = idmColor, style = line.style_dotted)
+        label.new(int(math.avg(barX, IDMid)), idmprc, 'IDM', color = transp, textcolor = idmColor, style = idmStyle, size = size.small)
+
+
+
 
 plot(close)
