@@ -3,8 +3,8 @@ indicator('xxx', 'KHAN SMC', true, max_bars_back = 5000, max_labels_count = 500,
 
 // [ _ ] creat and edit inputs symbols and timeframe and bool
 // [ _ ] edit function mnMark in the multisymbol
-// [ ] BoS_ChoCh
-// [ ]
+// [ _ ] BoS_ChoCh
+// [ ] cfHL
 // [ ]
 // [ ]
 
@@ -86,11 +86,11 @@ BoS_ChoCh(bool B_C, bool UpDn, tmodify, timeframe) =>
 //@description Calculates ? (cfHL).
 //@param tmodify Input ticker modify.
 //@param timeframe Input timeframe.
-// op_s1, cl_s1, hg_s1, lw_s1, barX,      H,      Hbar,      Lbar,      L
-//   |      |       |     |      |        |        |           |        |
-// open,   close,  high, low,  bar_index, high, bar_index, bar_index,  low
+// op_s1, cl_s1, hg_s1, lw_s1, barX,      H,      Hbar,      Lbar,      L,  lastHH,  lastLL
+//   |      |       |     |      |        |        |           |        |      |       |
+// open,   close,  high, low,  bar_index, high, bar_index, bar_index,  low,   high,   low
 cfHL(bool ifHL, tmodify, timeframe) =>
-    [op_s1, cl_s1, hg_s1, H, lw_s1, L, barX, Hbar, Lbar] = request.security(tmodify, timeframe, [open, close, high, low, low, bar_index], lookahead = barmerge.lookahead_off, ignore_invalid_symbol = false, gaps = barmerge.gaps_off)
+    [op_s1, cl_s1, hg_s1, H, lastHH, lw_s1, lastLL, L, barX, Hbar, Lbar] = request.security(tmodify, timeframe, [open, close, high, high, low, low, low, bar_index], lookahead = barmerge.lookahead_off, ignore_invalid_symbol = false, gaps = barmerge.gaps_off)
     [ifHLbarid, HLprc] = switch 
         ifHL => 
     	    if hg_s1 > H
@@ -102,9 +102,7 @@ cfHL(bool ifHL, tmodify, timeframe) =>
     	        [barX, lw_s1]
     	    else
     	        [Lbar, L]
-    ifHL_txt = if ifHL  
-// تا اینجا مشکلی نیس اما چون 
-//  در تابع بالا تعریف شده باید ی تغیراتی ایجاد کنیمlastHH
+    ifHL_txt = if ifHL
         if H == lastHH
             'HH'
         else
